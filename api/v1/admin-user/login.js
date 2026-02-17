@@ -1,8 +1,10 @@
 export default function handler(req, res) {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+const allowedOrigin = req.headers.origin;
+if (allowedOrigin) {
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+}  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {

